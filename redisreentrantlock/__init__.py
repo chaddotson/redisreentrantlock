@@ -115,14 +115,14 @@ class ReentrantLock(Lock):
         if cls.lua_reacquire is None:
             cls.lua_reacquire = client.register_script(cls.LUA_REACQUIRE_SCRIPT)
 
-    # TODO: Acquire
     def acquire(
-            self,
-            sleep: Optional[Number] = None,
-            blocking: Optional[bool] = None,
-            blocking_timeout: Optional[Number] = None,
-            token: Optional[str] = None,
+        self,
+        sleep: Optional[Number] = None,
+        blocking: Optional[bool] = None,
+        blocking_timeout: Optional[Number] = None,
+        token: Optional[str] = None,
     ):
+        # TODO: in this version token id overwritten by my specific generated token.
 
         if sleep is None:
             sleep = self.sleep
