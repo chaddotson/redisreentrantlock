@@ -129,8 +129,7 @@ class ReentrantLock(Lock):
         # if token is None:
         #     token = uuid.uuid1().hex.encode()
         # else:
-        t = threading.current_thread()
-        token = f'{socket.gethostname()}:{t.ident}'
+        token = f'{socket.gethostname()}:{threading.get_native_id()}'
         encoder = self.redis.get_encoder()
         token = encoder.encode(token)
 
@@ -153,15 +152,19 @@ class ReentrantLock(Lock):
             mod_time.sleep(sleep)
 
     def do_acquire(self, token: str) -> bool:
+        args = [token]
         if self.timeout:
             # convert to milliseconds
             timeout = int(self.timeout * 1000)
+            args.append(timeout)
         else:
             timeout = None
         # if self.redis.set(self.name, token, nx=True, px=timeout):
         print(self.name, token, timeout)
+
+
         if bool(
-                self.lua_acquire(keys=[self.name], args=[token, 20], client=self.redis)
+                self.lua_acquire(keys=[self.name], args=args, client=self.redis)
         ):
             return True
         return False
@@ -186,27 +189,25 @@ class ReentrantLock(Lock):
             raise LockNotOwnedError("Cannot release a lock that's no longer owned")
 
 
-t = threading.current_thread()
 
-print(t.ident)
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
 # r.lock('test', lock_class=ReentrantLock)
 # r.hset('test', mapping={'a': 1})
 
-print(r.hget('test', 'tocken'))
+# print(r.hget('test', 'tocken'))
 
 # r.expire('test', 5)
 
 from time import sleep
 
-with r.lock('test', lock_class=ReentrantLock, timeout=60):
+with r.lock('test', lock_class=ReentrantLock):
     print('level 1')
     sleep(10)
-    with r.lock('test', lock_class=ReentrantLock, timeout=60):
+    with r.lock('test', lock_class=ReentrantLock):
         print('level 2')
-        sleep(10)
+        sleep(20)
     print('level 1')
     sleep(10)
 
