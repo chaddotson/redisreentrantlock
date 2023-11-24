@@ -16,6 +16,12 @@ from redis.typing import Number
 
 
 class ReentrantLock(Lock):
+    """
+    Provides a reentrant lock in the style of redis.lock.Lock. This version implements the token stored in
+    redis as a combination of the hostname and thread id. it also implements the value as a hset so the number
+    of entrances can be kept track of.
+    """
+
     lua_acquire = None
 
     # KEYS[1] is the name of the hash
