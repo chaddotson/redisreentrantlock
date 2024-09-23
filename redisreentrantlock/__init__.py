@@ -1,20 +1,12 @@
-import os
 import socket
-
-from logging import getLogger
-import redis
-from redis.lock import Lock
-from redis import StrictRedis
-
 import threading
 import time as mod_time
-import uuid
-from types import SimpleNamespace, TracebackType
-from typing import Optional, Type
+from logging import getLogger
+from typing import Optional
 
-from redis.exceptions import LockError, LockNotOwnedError
+from redis.exceptions import LockNotOwnedError
+from redis.lock import Lock
 from redis.typing import Number
-
 
 logger = getLogger('redisreentrantlock')
 

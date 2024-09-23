@@ -1,22 +1,8 @@
-import os
-import socket
+from logging import INFO, basicConfig
 
 import redis
-from redis.lock import Lock
-from redis import StrictRedis
-
-import threading
-import time as mod_time
-import uuid
-from types import SimpleNamespace, TracebackType
-from typing import Optional, Type
-
-from redis.exceptions import LockError, LockNotOwnedError
-from redis.typing import Number
 
 from redisreentrantlock import ReentrantLock
-from logging import DEBUG, INFO, basicConfig, getLogger
-
 
 
 logging_config = dict(
@@ -26,8 +12,6 @@ logging_config = dict(
 )
 
 basicConfig(**logging_config)
-
-
 
 
 r = redis.Redis(host='localhost', port=6379, db=0)
