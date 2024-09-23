@@ -1,6 +1,7 @@
 import os
 import socket
 
+from logging import getLogger
 import redis
 from redis.lock import Lock
 from redis import StrictRedis
@@ -13,6 +14,9 @@ from typing import Optional, Type
 
 from redis.exceptions import LockError, LockNotOwnedError
 from redis.typing import Number
+
+
+logger = getLogger('redisreentrantlock')
 
 
 class ReentrantLock(Lock):
@@ -166,8 +170,9 @@ class ReentrantLock(Lock):
         else:
             timeout = None
         # if self.redis.set(self.name, token, nx=True, px=timeout):
-        print(self.name, token, timeout)
 
+        logger.info('Acquiring 1 lock: name: %s, token: %s, timeout: %s',
+                    self.name, token, timeout)
 
         if bool(
                 self.lua_acquire(keys=[self.name], args=args, client=self.redis)
@@ -187,34 +192,9 @@ class ReentrantLock(Lock):
             stored_token = encoder.encode(stored_token)
         return self.local.token is not None and stored_token == self.local.token
 
-    def do_release(self, expected_token: str) -> None:
-        print('-->', self.name, expected_token)
+    def do_release(self, token: str) -> None:
+        logger.info('Releasing 1 lock: name: %s, expected_token: %s', self.name, token)
         if not bool(
-                self.lua_release(keys=[self.name], args=[expected_token], client=self.redis)
+                self.lua_release(keys=[self.name], args=[token], client=self.redis)
         ):
             raise LockNotOwnedError("Cannot release a lock that's no longer owned")
-
-
-
-
-r = redis.Redis(host='localhost', port=6379, db=0)
-
-# r.lock('test', lock_class=ReentrantLock)
-# r.hset('test', mapping={'a': 1})
-
-# print(r.hget('test', 'tocken'))
-
-# r.expire('test', 5)
-
-from time import sleep
-
-with r.lock('test', lock_class=ReentrantLock):
-    print('level 1')
-    sleep(10)
-    with r.lock('test', lock_class=ReentrantLock):
-        print('level 2')
-        sleep(20)
-    print('level 1')
-    sleep(10)
-
-# r.delete('test')
